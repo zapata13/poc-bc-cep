@@ -1,0 +1,26 @@
+package com.myspace.poc_bc_cep;
+
+rule "Default"
+when     
+    
+then
+    System.out.println("Evaluando regla CEP");
+end
+
+rule "Detectar objeto"
+when     
+    $t: PqrCEPDO()
+then
+    System.out.println("Objeto: " + $t.toString());
+end
+
+rule "More than 5 transactions in an minute from one client"
+when
+    $t1: PqrCEPDO($cId: numeroIdentificacion, $tId: tipoIdentificacion)
+    Number($i: intValue >= 5)
+    from accumulate($t2: PqrCEPDO(this != $t1, numeroIdentificacion == $cId, this meets[1m] $t1),count($t2) )
+    not (PQRFrecuente(numeroIdentificacion == $cId))
+then
+    System.out.println("Se encontro 5 peticiones");
+    insert(new PQRFrecuente($cId, $tId, $i));
+end
